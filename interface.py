@@ -3,7 +3,7 @@ from tkinter import messagebox, ttk, simpledialog
 import bd
 
 class App:
-    def __init__(self, root):
+    def _init_(self, root):
         self.root = root
         self.root.title("Sistema de Controle de Estoque")
         self.create_login_screen()
@@ -26,11 +26,26 @@ class App:
         self.login_button = tk.Button(self.login_frame, text="Login", command=self.login)
         self.login_button.grid(row=2, columnspan=2, pady=10)
 
-    def create_inventory_screen(self, userid):
+    def create_category_selection_screen(self):
+        self.clear_screen()
+        self.root.geometry("300x200")
+
+        self.category_frame = tk.Frame(self.root)
+        self.category_frame.pack(pady=20)
+
+        tk.Label(self.category_frame, text="Selecione uma Categoria").pack(pady=10)
+
+        self.category1_button = tk.Button(self.category_frame, text="CATEGORIA 1", command=lambda: self.create_inventory_screen("CATEGORIA1"))
+        self.category1_button.pack(pady=5)
+
+        self.category2_button = tk.Button(self.category_frame, text="CATEGORIA 2", command=lambda: self.create_inventory_screen("CATEGORIA2"))
+        self.category2_button.pack(pady=5)
+
+    def create_inventory_screen(self, categoria):
         self.clear_screen()
         self.root.geometry("600x400")
 
-        self.userid = userid
+        self.categoria = categoria
 
         self.inventory_frame = tk.Frame(self.root)
         self.inventory_frame.pack(pady=20)
@@ -68,30 +83,32 @@ class App:
     def login(self):
         username = self.username_entry.get()
         password = self.password_entry.get()
-        user = bd.autenticar_usuario(username, password)
-        if user:
+        user_cat1 = bd.autenticar_usuario('CATEGORIA1', username, password)
+        user_cat2 = bd.autenticar_usuario('CATEGORIA2', username, password)
+        if user_cat1 or user_cat2:
             messagebox.showinfo("Login", "Login bem-sucedido!")
-            self.create_inventory_screen(user[0])
+            self.userid = user_cat1[0] if user_cat1 else user_cat2[0]
+            self.create_category_selection_screen()
         else:
             messagebox.showerror("Login", "Nome de usuário ou senha incorretos")
 
     def add_item(self):
         item = self.item_entry.get()
         quantity = int(self.quantity_entry.get())
-        bd.inserir_item(item, quantity, self.userid)
+        bd.inserir_item(self.categoria, item, quantity, self.userid)
         self.update_tree()
 
     def remove_item(self):
         selected_item = self.tree.selection()
         if selected_item:
             item_id = int(self.tree.item(selected_item)['values'][0])
-            bd.deletar_item(item_id)
+            bd.deletar_item(self.categoria, item_id)
             self.update_tree()
 
     def edit_item(self, item_id, item, quantity):
         new_quantity = simpledialog.askinteger("Quantidade", "Digite a nova quantidade:", initialvalue=quantity)
         if new_quantity is not None:
-            bd.atualizar_item(item_id, item, new_quantity, self.userid)
+            bd.atualizar_item(self.categoria, item_id, item, new_quantity, self.userid)
             self.update_tree()
 
     def on_double_click(self, event):
@@ -103,12 +120,4 @@ class App:
     def update_tree(self):
         for row in self.tree.get_children():
             self.tree.delete(row)
-        itens = bd.listar_itens()
-        for item in itens:
-            self.tree.insert("", "end", values=item)
-
-# Executando a aplicação
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = App(root)
-    root.mainloop()
+            itens = bd

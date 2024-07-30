@@ -2,11 +2,11 @@ import sqlite3
 from datetime import datetime
 import hashlib
 
-def conectar():
-    return sqlite3.connect('estoque.db')
+def conectar(banco):
+    return sqlite3.connect(f'{estoque}.db')
 
-def criar_tabelas():
-    conn = conectar()
+def criar_tabelas(banco):
+    conn = conectar(banco)
     cursor = conn.cursor()
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS estoque (
@@ -28,8 +28,8 @@ def criar_tabelas():
     conn.commit()
     conn.close()
 
-def inserir_usuario(nome_usuario, senha):
-    conn = conectar()
+def inserir_usuario(banco, nome_usuario, senha):
+    conn = conectar(banco)
     cursor = conn.cursor()
     senha_hash = hashlib.sha256(senha.encode()).hexdigest()
     cursor.execute('''
@@ -39,8 +39,8 @@ def inserir_usuario(nome_usuario, senha):
     conn.commit()
     conn.close()
 
-def autenticar_usuario(nome_usuario, senha):
-    conn = conectar()
+def autenticar_usuario(banco, nome_usuario, senha):
+    conn = conectar(banco)
     cursor = conn.cursor()
     senha_hash = hashlib.sha256(senha.encode()).hexdigest()
     cursor.execute('''
@@ -50,8 +50,8 @@ def autenticar_usuario(nome_usuario, senha):
     conn.close()
     return usuario
 
-def inserir_item(item, quantidade, userid):
-    conn = conectar()
+def inserir_item(banco, item, quantidade, userid):
+    conn = conectar(banco)
     cursor = conn.cursor()
     data_ultima_modificacao = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     cursor.execute('''
@@ -61,16 +61,16 @@ def inserir_item(item, quantidade, userid):
     conn.commit()
     conn.close()
 
-def listar_itens():
-    conn = conectar()
+def listar_itens(banco):
+    conn = conectar(banco)
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM estoque')
     itens = cursor.fetchall()
     conn.close()
     return itens
 
-def atualizar_item(id, item, quantidade, userid):
-    conn = conectar()
+def atualizar_item(banco, id, item, quantidade, userid):
+    conn = conectar(banco)
     cursor = conn.cursor()
     data_ultima_modificacao = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     cursor.execute('''
@@ -81,8 +81,8 @@ def atualizar_item(id, item, quantidade, userid):
     conn.commit()
     conn.close()
 
-def deletar_item(id):
-    conn = conectar()
+def deletar_item(banco, id):
+    conn = conectar(banco)
     cursor = conn.cursor()
     cursor.execute('DELETE FROM estoque WHERE id = ?', (id,))
     conn.commit()
