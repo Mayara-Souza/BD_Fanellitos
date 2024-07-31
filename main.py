@@ -1,15 +1,13 @@
-import bd
-import interface
 import tkinter as tk
+from interface import App
+import bd
 
+# Garantir que as tabelas existam para ambas as categorias
+bd.criar_tabelas('CATEGORIA1')
+bd.criar_tabelas('CATEGORIA2')
+
+# Executando a aplicação
 if __name__ == "__main__":
-    # Criar tabelas
-    bd.criar_tabelas()
-
-    # Inserir um usuário admin para teste
-    bd.inserir_usuario('admin', 'admin123')
-
-    # Iniciar a interface gráfica
     root = tk.Tk()
-    app = interface.App(root)
+    app = App(root)
     root.mainloop()

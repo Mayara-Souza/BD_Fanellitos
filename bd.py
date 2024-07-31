@@ -1,89 +1,102 @@
 import sqlite3
-from datetime import datetime
+import random
+import string
 import hashlib
+import datetime
 
-def conectar(banco):
-    return sqlite3.connect(f'{estoque}.db')
+def conectar(categoria):
+    conn = sqlite3.connect(f'{categoria}.db')
+    return conn
 
-def criar_tabelas(banco):
-    conn = conectar(banco)
+def criar_tabelas(categoria):
+    conn = conectar(categoria)
     cursor = conn.cursor()
+
+    # Criação da tabela de estoque
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS estoque (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id INTEGER PRIMARY KEY,
         item TEXT NOT NULL,
         quantidade INTEGER NOT NULL,
-        data_ultima_modificacao TEXT NOT NULL,
-        userid INTEGER NOT NULL,
-        FOREIGN KEY (userid) REFERENCES usuarios (id)
+        data_modificacao TEXT NOT NULL,
+        nome_usuario TEXT NOT NULL
     )
     ''')
+
+    # Criação da tabela de usuários
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS usuarios (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nome_usuario TEXT NOT NULL,
+        username TEXT UNIQUE NOT NULL,
+        email TEXT UNIQUE NOT NULL,
         senha TEXT NOT NULL
     )
     ''')
+
     conn.commit()
     conn.close()
 
-def inserir_usuario(banco, nome_usuario, senha):
-    conn = conectar(banco)
+def gerar_id_unico():
+    return ''.join(random.choices(string.digits, k=6))
+
+def hash_senha(senha):
+    return hashlib.sha256(senha.encode()).hexdigest()
+
+def inserir_item(categoria, item, quantidade, username):
+    conn = conectar(categoria)
     cursor = conn.cursor()
-    senha_hash = hashlib.sha256(senha.encode()).hexdigest()
-    cursor.execute('''
-    INSERT INTO usuarios (nome_usuario, senha)
-    VALUES (?, ?)
-    ''', (nome_usuario, senha_hash))
+    data_modificacao = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    item_id = gerar_id_unico()
+    cursor.execute('INSERT INTO estoque (id, item, quantidade, data_modificacao, nome_usuario) VALUES (?, ?, ?, ?, ?)', (item_id, item, quantidade, data_modificacao, username))
     conn.commit()
     conn.close()
 
-def autenticar_usuario(banco, nome_usuario, senha):
-    conn = conectar(banco)
+def deletar_item(categoria, item_id):
+    conn = conectar(categoria)
     cursor = conn.cursor()
-    senha_hash = hashlib.sha256(senha.encode()).hexdigest()
-    cursor.execute('''
-    SELECT * FROM usuarios WHERE nome_usuario = ? AND senha = ?
-    ''', (nome_usuario, senha_hash))
-    usuario = cursor.fetchone()
-    conn.close()
-    return usuario
-
-def inserir_item(banco, item, quantidade, userid):
-    conn = conectar(banco)
-    cursor = conn.cursor()
-    data_ultima_modificacao = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    cursor.execute('''
-    INSERT INTO estoque (item, quantidade, data_ultima_modificacao, userid)
-    VALUES (?, ?, ?, ?)
-    ''', (item, quantidade, data_ultima_modificacao, userid))
+    cursor.execute('DELETE FROM estoque WHERE id = ?', (item_id,))
     conn.commit()
     conn.close()
 
-def listar_itens(banco):
-    conn = conectar(banco)
+def atualizar_item(categoria, item_id, item, quantidade, username):
+    conn = conectar(categoria)
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM estoque')
+    data_modificacao = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    cursor.execute('UPDATE estoque SET item = ?, quantidade = ?, data_modificacao = ?, nome_usuario = ? WHERE id = ?', (item, quantidade, data_modificacao, username, item_id))
+    conn.commit()
+    conn.close()
+
+def listar_itens(categoria):
+    conn = conectar(categoria)
+    cursor = conn.cursor()
+    cursor.execute('SELECT id, item, quantidade, data_modificacao, nome_usuario FROM estoque')
     itens = cursor.fetchall()
     conn.close()
     return itens
 
-def atualizar_item(banco, id, item, quantidade, userid):
-    conn = conectar(banco)
+def autenticar_usuario(categoria, username, senha):
+    conn = conectar(categoria)
     cursor = conn.cursor()
-    data_ultima_modificacao = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    cursor.execute('''
-    UPDATE estoque
-    SET item = ?, quantidade = ?, data_ultima_modificacao = ?, userid = ?
-    WHERE id = ?
-    ''', (item, quantidade, data_ultima_modificacao, userid, id))
-    conn.commit()
+    cursor.execute('SELECT * FROM usuarios WHERE username = ? AND senha = ?', (username, hash_senha(senha)))
+    user = cursor.fetchone()
     conn.close()
+    return user
 
-def deletar_item(banco, id):
-    conn = conectar(banco)
+def cadastrar_usuario(categoria, username, email, senha):
+    conn = conectar(categoria)
     cursor = conn.cursor()
-    cursor.execute('DELETE FROM estoque WHERE id = ?', (id,))
+    try:
+        cursor.execute('INSERT INTO usuarios (username, email, senha) VALUES (?, ?, ?)', (username, email, hash_senha(senha)))
+        conn.commit()
+        return True
+    except sqlite3.IntegrityError:
+        return False
+    finally:
+        conn.close()
+
+def redefinir_senha(categoria, email, nova_senha):
+    conn = conectar(categoria)
+    cursor = conn.cursor()
+    cursor.execute('UPDATE usuarios SET senha = ? WHERE email = ?', (hash_senha(nova_senha), email))
     conn.commit()
     conn.close()
