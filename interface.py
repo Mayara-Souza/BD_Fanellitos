@@ -95,9 +95,8 @@ class App:
     def login(self):
         username = self.username_entry.get()
         password = self.password_entry.get()
-        user_cat1 = bd.autenticar_usuario('CATEGORIA1', username, password)
-        user_cat2 = bd.autenticar_usuario('CATEGORIA2', username, password)
-        if user_cat1 or user_cat2:
+        user = bd.autenticar_usuario(username, password)
+        if user:
             messagebox.showinfo("Login", "Login bem-sucedido!")
             self.username = username
             self.create_category_selection_screen()
@@ -157,8 +156,7 @@ class App:
         email = self.email_entry.get()
         new_password = simpledialog.askstring("Redefinir Senha", "Digite a nova senha:")
         if new_password:
-            bd.redefinir_senha('CATEGORIA1', email, new_password)
-            bd.redefinir_senha('CATEGORIA2', email, new_password)
+            bd.redefinir_senha(email, new_password)
             messagebox.showinfo("Redefinir Senha", "Senha redefinida com sucesso!")
             self.create_login_screen()
 
@@ -198,7 +196,7 @@ class App:
         confirm_password = self.reg_confirm_password_entry.get()
 
         if password == confirm_password:
-            if bd.cadastrar_usuario('CATEGORIA1', username, email, password) or bd.cadastrar_usuario('CATEGORIA2', username, email, password):
+            if bd.cadastrar_usuario(username, email, password):
                 messagebox.showinfo("Cadastro", "Usuário cadastrado com sucesso!")
                 self.create_login_screen()
             else:
