@@ -1,36 +1,69 @@
 import tkinter as tk
 from tkinter import messagebox, ttk, simpledialog
+from tkinter import font as tkfont
 import bd
 
 class App:
     def __init__(self, root):
         self.root = root
-        self.root.title("Sistema de Controle de Estoque")
+        self.root.title("FANELLITOS DB")
         self.create_login_screen()
 
+    def set_fullscreen(self):
+        self.root.attributes('-fullscreen', True)  # Define a janela como tela cheia
+        self.root.bind("<F11>", self.toggle_fullscreen)  # Permite alternar entre tela cheia e janela normal com F11
+        self.root.bind("<Escape>", self.quit_fullscreen)  # Permite sair da tela cheia com Esc
+
+    def toggle_fullscreen(self, event=None):
+        self.root.attributes('-fullscreen', not self.root.attributes('-fullscreen'))
+
+    def quit_fullscreen(self, event=None):
+        self.root.attributes('-fullscreen', False)
+        self.root.geometry("1200x800")  # Define um tamanho padrão para a janela se sair da tela cheia
+
     def create_login_screen(self):
-        self.clear_screen()
-        self.root.geometry("300x250")
+        self.clear_screen()  # Limpa a tela e configura a cor de fundo
+        self.root['bg'] = '#3a86d1'
 
-        self.login_frame = tk.Frame(self.root)
-        self.login_frame.pack(pady=20)
+        # Frame principal para centralizar os widgets
+        self.login_frame = tk.Frame(self.root, bg="#3073b7", pady=10, padx=10)
+        self.login_frame.place(relx=0.5, rely=0.5, anchor='center')
 
-        tk.Label(self.login_frame, text="Nome de Usuário").grid(row=0, column=0, pady=5)
-        self.username_entry = tk.Entry(self.login_frame)
-        self.username_entry.grid(row=0, column=1, pady=5)
+        # Definindo uma fonte grande e em negrito
+        bold_font = tkfont.Font(family="Ubuntu", size=16, weight="bold")
+        # Definindo uma fonte para botões e textos
+        regular_font = tkfont.Font(family="Ubuntu", size=12, weight="bold")
 
-        tk.Label(self.login_frame, text="Senha").grid(row=1, column=0, pady=5)
-        self.password_entry = tk.Entry(self.login_frame, show="*")
-        self.password_entry.grid(row=1, column=1, pady=5)
+        # Labels e Entradas
+        tk.Label(self.login_frame, text="Nome de Usuário", bg="#3073b7", fg="black", font=bold_font, width=20).grid(row=0, column=0, pady=10, padx=10)
+        self.username_entry = tk.Entry(self.login_frame, width=20, font='arial 14 bold', selectbackground='#f37107', selectborderwidth=8, selectforeground='white')
+        self.username_entry.grid(row=0, column=1, pady=10, padx=10)
+        
 
-        self.login_button = tk.Button(self.login_frame, text="Login", command=self.login)
-        self.login_button.grid(row=2, columnspan=2, pady=10)
+        tk.Label(self.login_frame, text="Senha", bg="#3073b7", fg="black", font=bold_font).grid(row=1, column=0, pady=10, padx=10)
+        self.password_entry = tk.Entry(self.login_frame, show="*", width=20, font='arial 14 bold', selectbackground='#f37107', selectborderwidth=8, selectforeground='white')
+        self.password_entry.grid(row=1, column=1, pady=10, padx=10)
 
-        self.forgot_password_button = tk.Button(self.login_frame, text="Esqueceu sua senha?", command=self.forgot_password)
-        self.forgot_password_button.grid(row=3, columnspan=2, pady=5)
+        # Botões
+        button_frame = tk.Frame(self.login_frame, bg="#3073b7")
+        button_frame.grid(row=2, column=0, columnspan=2, pady=20)
 
-        self.register_button = tk.Button(self.login_frame, text="Cadastre-se", command=self.register)
-        self.register_button.grid(row=4, columnspan=2, pady=5)
+        self.login_button = tk.Button(button_frame, text="Login", command=self.login, bg="#f37107", fg="white", font=regular_font)
+        self.login_button.pack(side=tk.LEFT, padx=10)
+
+        self.signup_button = tk.Button(button_frame, text="Cadastre-se", command=self.create_signup_screen, bg="#f37107", fg="white",  font=regular_font)
+        self.signup_button.pack(side=tk.LEFT, padx=10)
+
+        self.forgot_password_button = tk.Button(self.login_frame, text="Esqueceu sua senha?", command=self.create_forgot_password_screen, bg="#f37107", fg="white",  font=regular_font)
+        self.forgot_password_button.grid(row=3, column=0, columnspan=2, pady=10)
+
+    def create_signup_screen(self):
+        # Placeholder for signup screen
+        pass
+
+    def create_forgot_password_screen(self):
+        # Placeholder for forgot password screen
+        pass
 
     def create_category_selection_screen(self):
         self.clear_screen()
